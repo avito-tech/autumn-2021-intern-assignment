@@ -1,6 +1,28 @@
 from rest_framework import serializers
 from .models import User
 
+from ..bankcontroller.models import Wallet
+
+
+class CurrentUserSerializer(serializers.ModelSerializer):
+
+    balance = serializers.SerializerMethodField('get_balance')
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'first_name',
+            'last_name',
+            'phone',
+            'balance'
+        )
+
+    def get_balance(self, obj):
+        wallet = Wallet.objects.get(user=obj)
+        return wallet.balance
+
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,17 +30,20 @@ class UserListSerializer(serializers.ModelSerializer):
         fields = (
             'email', 'id',
             'first_name', 'last_name',
-            'phone'
         )
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
 
+    phone = serializers.CharField(
+        max_length=9,
+        help_text='Последние цифры, 9 символов'
+    )
+
     class Meta:
         model = User
         fields = (
-            'email', 'id',
-            'username',
+            'email',
             'first_name',
             'last_name',
             'phone',
@@ -28,15 +53,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def validate_first_name(self, value):
         if value == '':
             raise serializers.ValidationError('Вас зовут ... ??')
+        return value
 
     def validate_last_name(self, value):
         if value == '':
             raise serializers.ValidationError('Ваша фамилия ... ??')
+        return value
 
     def validate_phone(self, value):
         if not value.isdigit():
             raise serializers.ValidationError(
-                "Формат ввода: +375... и желательно цифры")
+                "Последние цифры, 9 символов. И желательно цифры")
         if len(value) > 9:
             raise serializers.ValidationError(
                 'Слишком длинный номер! Не кажется?')
@@ -56,4 +83,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
+        wallet = Wallet.objects.create(user=user)
+        wallet.save()
         return user

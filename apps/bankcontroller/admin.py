@@ -1,3 +1,9 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Wallet, MoneyCard, Service, ShopService
+
+
+admin.site.register(Wallet)
+admin.site.register(MoneyCard)
+admin.site.register(Service)
+admin.site.register(ShopService)
