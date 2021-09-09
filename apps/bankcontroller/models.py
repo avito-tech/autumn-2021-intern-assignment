@@ -147,3 +147,6 @@ class ShopService(models.Model):
         verbose_name = 'Покупка услуги'
         verbose_name_plural = 'Покупки услуги'
         ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.user} купил услугу {self.service.name} за {self.service.price}"

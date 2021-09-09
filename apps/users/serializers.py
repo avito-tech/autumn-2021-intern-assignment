@@ -2,11 +2,13 @@ from rest_framework import serializers
 from .models import User
 
 from ..bankcontroller.models import Wallet
+from ..bankcontroller.serializers import ShopServiceSerializer
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
 
     balance = serializers.SerializerMethodField('get_balance')
+    services = serializers.SerializerMethodField('shop_services')
 
     class Meta:
         model = User
@@ -16,12 +18,17 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'phone',
-            'balance'
+            'balance',
+            'services'
         )
 
     def get_balance(self, obj):
         wallet = Wallet.objects.get(user=obj)
         return wallet.balance
+
+    def shop_services(self, obj):
+        shops_services = obj.shops.all()
+        return ShopServiceSerializer(shops_services, many=True).data
 
 
 class UserListSerializer(serializers.ModelSerializer):

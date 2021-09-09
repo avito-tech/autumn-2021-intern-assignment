@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Wallet, MoneyCard
+from .models import ShopService, Wallet, MoneyCard, Service
 
 
 class CreateMoneyCardSerializer(serializers.ModelSerializer):
@@ -26,3 +26,43 @@ class CreateMoneyCardSerializer(serializers.ModelSerializer):
         wallet.balance += validated_data['amount']
         wallet.save()
         return super().create(validated_data)
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+
+    purchased = serializers.SerializerMethodField(
+        'service_was_purchased_by_the_user')
+
+    class Meta:
+        model = Service
+        fields = (
+            'name',
+            'id',
+            'description',
+            'price',
+            'purchased'
+        )
+
+    def service_was_purchased_by_the_user(self, obj):
+        try:
+            request = self.context.get('request')
+            if request is None or request.user.is_anonymous:
+                return False
+            return ShopService.objects.filter(
+                service=obj,
+                user=request.user
+            ).exists()
+        except TypeError:
+            return False
+
+
+class ShopServiceSerializer(serializers.ModelSerializer):
+
+    service = serializers.SlugRelatedField(read_only=True, slug_field='name')
+
+    class Meta:
+        model = ShopService
+        fields = (
+            'service',
+            'date'
+        )
