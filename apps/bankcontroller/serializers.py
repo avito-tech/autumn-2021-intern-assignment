@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ShopService, Wallet, MoneyCard, Service
+from .models import MoneyCard, Service, ShopService, Wallet
 
 
 class CreateMoneyCardSerializer(serializers.ModelSerializer):
@@ -40,6 +40,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             'id',
             'description',
             'price',
+            'currency',
             'purchased'
         )
 
@@ -56,9 +57,25 @@ class ServiceSerializer(serializers.ModelSerializer):
             return False
 
 
+class ServiceInShopServiceSerializer(serializers.ModelSerializer):
+
+    price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Service
+        fields = (
+            'name',
+            'price'
+        )
+
+    def get_price(self, obj):
+        return f"{obj.price} {obj.currency}"
+
+
 class ShopServiceSerializer(serializers.ModelSerializer):
 
-    service = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    service = ServiceInShopServiceSerializer(read_only=True)
+    date = serializers.SerializerMethodField()
 
     class Meta:
         model = ShopService
@@ -66,3 +83,6 @@ class ShopServiceSerializer(serializers.ModelSerializer):
             'service',
             'date'
         )
+
+    def get_date(self, obj):
+        return f' Куплено: {obj.date.strftime("%d.%m.%Y")} в {obj.date.strftime("%H:%I")}'

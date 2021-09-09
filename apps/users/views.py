@@ -1,9 +1,10 @@
 from djoser.views import UserViewSet as BaseUserViewSet
-# from rest_framework.decorators import action
 
+from ..services.pagination import LimitPageNumberPagination
 from .models import User
 from .serializers import UserListSerializer
-from ..services.pagination import LimitPageNumberPagination
+
+# from rest_framework.decorators import action
 
 
 class UserViewSet(BaseUserViewSet):

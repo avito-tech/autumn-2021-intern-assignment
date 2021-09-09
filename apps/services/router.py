@@ -1,5 +1,5 @@
-from rest_framework.routers import DefaultRouter
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from ..bankcontroller.views import CreateMoneyCardView, ServiceView
 from ..users.views import UserViewSet

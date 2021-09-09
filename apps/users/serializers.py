@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import User
 
 from ..bankcontroller.models import Wallet
 from ..bankcontroller.serializers import ShopServiceSerializer
+from .models import User
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_balance(self, obj):
         wallet = Wallet.objects.get(user=obj)
-        return wallet.balance
+        return f'{wallet.balance} BYN'
 
     def shop_services(self, obj):
         shops_services = obj.shops.all()
@@ -44,7 +44,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     phone = serializers.CharField(
         max_length=9,
-        help_text='Последние цифры, 9 символов'
+        help_text='Последние цифры, 9 символов',
+        label='Телефон'
     )
 
     class Meta:

@@ -1,12 +1,20 @@
-from rest_framework import viewsets
+import decimal
+
+from rest_framework import response, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework import response, status
 
-from .models import MoneyCard, Service, Wallet, ShopService
-from .serializers import CreateMoneyCardSerializer, ServiceSerializer, ShopServiceSerializer
 from ..services.permissions import AdminCreatOrUserRead
+from .models import MoneyCard, Service, ShopService, Wallet
+from .serializers import CreateMoneyCardSerializer, ServiceSerializer
+
+CUREENCY = {
+    "USD": 0.39,
+    'EUR': 0.33,
+    "RUB": 29.14,
+    "BYN": 1
+}
 
 
 class CreateMoneyCardView(CreateAPIView):
@@ -38,7 +46,8 @@ class ServiceView(viewsets.ModelViewSet):
     def shop(self, request, pk=None):
         user, service = self._get_user_or_service(request)
         user_balance = Wallet.objects.get(user=user)
-        service_price = service.price
+        currency = decimal.Decimal(CUREENCY[service.currency])
+        service_price = service.price / currency
         if ShopService.objects.filter(user=user, service=service).exists():
             return response.Response(
                 f"У Вас уже приобретена услуга {service.name}"
@@ -60,5 +69,3 @@ class ServiceView(viewsets.ModelViewSet):
             {'detail': f'Вы успешно купили услугу {service.name}'},
             status=status.HTTP_200_OK
         )
-
-

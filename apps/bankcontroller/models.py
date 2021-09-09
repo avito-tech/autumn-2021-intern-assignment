@@ -1,5 +1,6 @@
 import datetime as dt
 import random
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -89,10 +90,19 @@ class MoneyCard(models.Model):
 class Service(models.Model):
     '''Услуги'''
 
+    CUREENCY = (
+        ('USD', 'USD'),
+        ('RUB', 'RUB'),
+        ('EUR', 'EUR'),
+        ('BYN', 'BYN')
+    )
+
     name = models.CharField(_("Название услуги"), max_length=55)
     description = models.TextField(_('Описание'))
     price = models.DecimalField(
         _('Цена услуги'), max_digits=10, decimal_places=2)
+    currency = models.CharField(
+        _('Валюта'), choices=CUREENCY, default='BYN', max_length=6)
 
     class Meta:
         verbose_name = 'Услуга'
