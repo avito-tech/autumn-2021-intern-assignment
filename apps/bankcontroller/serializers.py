@@ -85,4 +85,5 @@ class ShopServiceSerializer(serializers.ModelSerializer):
         )
 
     def get_date(self, obj):
-        return f' Куплено: {obj.date.strftime("%d.%m.%Y")} в {obj.date.strftime("%H:%I")}'
+        return (f' Куплено: {obj.date.strftime("%d.%m.%Y")}'
+                f' в {obj.date.strftime("%H:%I")}')

@@ -1,5 +1,6 @@
 import decimal
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
@@ -8,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from ..services.permissions import AdminCreatOrUserRead
 from .models import MoneyCard, Service, ShopService, Wallet
 from .serializers import CreateMoneyCardSerializer, ServiceSerializer
+from .filters import ServiceFilter
 
 CUREENCY = {
     "USD": 0.39,
@@ -32,6 +34,8 @@ class ServiceView(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [AdminCreatOrUserRead]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ServiceFilter
 
     def _get_user_or_service(self, request):
         user = request.user
@@ -55,7 +59,7 @@ class ServiceView(viewsets.ModelViewSet):
         purchase = user_balance.balance - service_price
         if purchase < 0:
             return response.Response(
-                f"У Вас недостаточна средств для покупки {service.name}",
+                f"У Вас недостаточно средств для покупки {service.name}",
                 status=status.HTTP_402_PAYMENT_REQUIRED
             )
         user_balance.balance -= service_price
