@@ -6,10 +6,11 @@ from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
-from ..services.permissions import AdminCreatOrUserRead
+from apps.services.permissions import AdminCreatOrUserRead
+
+from .filters import ServiceFilter
 from .models import MoneyCard, Service, ShopService, Wallet
 from .serializers import CreateMoneyCardSerializer, ServiceSerializer
-from .filters import ServiceFilter
 
 CUREENCY = {
     "USD": 0.39,

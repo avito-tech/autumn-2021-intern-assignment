@@ -1,7 +1,8 @@
-from django.utils.log import DEFAULT_LOGGING
-import logging.config
-import logging
 import datetime
+import logging
+import logging.config
+
+from django.utils.log import DEFAULT_LOGGING
 
 from .base import *
 

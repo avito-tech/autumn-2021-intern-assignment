@@ -2,15 +2,15 @@ import decimal
 
 from faker import Faker as FakerBase
 from rest_framework import status
-from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APITestCase
 
-from ..bankcontroller.models import Service, ShopService, Wallet
-from ..bankcontroller.serializers import ServiceSerializer
-from ..users.models import User
-from ..users.serializers import (CurrentUserSerializer, UserCreateSerializer,
-                                 UserListSerializer)
-
+from apps.bankcontroller.models import Service, ShopService, Wallet
+from apps.bankcontroller.serializers import (CreateMoneyCardSerializer,
+                                             ServiceSerializer)
+from apps.users.models import User
+from apps.users.serializers import (CurrentUserSerializer,
+                                    UserCreateSerializer, UserListSerializer)
 
 faker = FakerBase()
 
@@ -104,6 +104,8 @@ class TestApiSerializer(APITestCase):
         serializer = ServiceSerializer(services)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer.data['purchased'], False)
+        self.client.force_authenticate(user=None)
+        self.assertEqual(serializer.data['purchased'], False)
 
     def test_create_money_card(self):
         data = {
@@ -112,7 +114,6 @@ class TestApiSerializer(APITestCase):
             "year": "2021",
             "amount": 1000
         }
-        # serializer =
         self.client.force_authenticate(user=None)
         response = self.client.post("/create_money_card/", data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -156,3 +157,61 @@ class TestApiSerializer(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['phone'], serializer.data['phone'])
         self.assertEqual(serializer.data['balance'], '1000.00 BYN')
+
+    def test_bankcontroller_serializer_error(self):
+        data = {
+            "number": "123",
+            "month": "12",
+            "year": "2021",
+            "amount": 1000
+        }
+        serializer = CreateMoneyCardSerializer(data=data)
+        message_error = 'Номер карточки не может быть менее 16 символов'
+        assert not serializer.is_valid()
+        assert serializer.validated_data == {}
+        assert serializer.errors == {'number': [message_error]}
+
+    def test_users_serializer_errors(self):
+        serializer = UserCreateSerializer(data={})
+        message_error = [
+            'Вас зовут apps.. ??',
+            'Ваша фамилия apps.. ??',
+            'Обязательное поле.',
+            'Слишком длинный номер! Не кажется?',
+            'Слишком короткий номер! Не кажется?',
+            "Пользователь с таким номером телефона уже существует",
+            'Убедитесь, что это значение содержит не более 9 символов.',
+            "Последние цифры, 9 символов. И желательно цифры",
+        ]
+        assert not serializer.is_valid()
+        assert serializer.validated_data == {}
+        assert serializer.errors['email'][0] == message_error[2]
+        assert serializer.errors['phone'][0] == message_error[2]
+        assert serializer.errors['password'][0] == message_error[2]
+        serializer = UserCreateSerializer(
+            data={
+                'first_name': '',
+                'last_name': ''
+            }
+        )
+        assert not serializer.is_valid()
+        assert serializer.errors['first_name'][0] == message_error[0]
+        assert serializer.errors['last_name'][0] == message_error[1]
+        serializer = UserCreateSerializer(data={'phone': 'awdaw'})
+        assert not serializer.is_valid()
+        assert serializer.errors['phone'][0] == message_error[-1]
+        serializer = UserCreateSerializer(data={'phone': '123'})
+        assert not serializer.is_valid()
+        assert serializer.errors['phone'][0] == message_error[4]
+        serializer = UserCreateSerializer(data={'phone': '1234567890'})
+        assert not serializer.is_valid()
+        assert serializer.errors['phone'][0] == message_error[-2]
+
+    def test_shop_service(self):
+        serializer = CurrentUserSerializer(self.admin)
+        self.client.force_authenticate(user=None)
+        request = self.client.get('/services/1/shop/')
+        self.assertEqual(request.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.client.force_authenticate(user=self.admin)
+        request = self.client.get('/services/1/shop/')
+        self.assertEqual(request.status_code, status.HTTP_200_OK)

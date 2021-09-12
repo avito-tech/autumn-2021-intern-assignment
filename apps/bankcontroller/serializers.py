@@ -87,3 +87,9 @@ class ShopServiceSerializer(serializers.ModelSerializer):
     def get_date(self, obj):
         return (f' Куплено: {obj.date.strftime("%d.%m.%Y")}'
                 f' в {obj.date.strftime("%H:%I")}')
+
+
+class MoneyTransferSerializer(serializers.Serializer):
+
+    amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, label='Сумма', required=True)

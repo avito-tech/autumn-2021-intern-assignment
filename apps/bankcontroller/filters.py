@@ -10,7 +10,7 @@ class ServiceFilter(filters.FilterSet):
     purchased = filters.BooleanFilter(
         field_name='shop__service', lookup_expr='isnull',
         method='filter_service_in_shop_service', label='Приобретено'
-        )
+    )
 
     # не работатет false
     def filter_service_in_shop_service(self, queryset, name, value):

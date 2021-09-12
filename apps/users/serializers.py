@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
-from ..bankcontroller.models import Wallet
-from ..bankcontroller.serializers import ShopServiceSerializer
+from apps.bankcontroller.models import Wallet
+from apps.bankcontroller.serializers import ShopServiceSerializer
+
 from .models import User
 
 
@@ -60,12 +61,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def validate_first_name(self, value):
         if value == '':
-            raise serializers.ValidationError('Вас зовут ... ??')
+            raise serializers.ValidationError('Вас зовут apps.. ??')
         return value
 
     def validate_last_name(self, value):
         if value == '':
-            raise serializers.ValidationError('Ваша фамилия ... ??')
+            raise serializers.ValidationError('Ваша фамилия apps.. ??')
         return value
 
     def validate_phone(self, value):
@@ -75,6 +76,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
         if len(value) > 9:
             raise serializers.ValidationError(
                 'Слишком длинный номер! Не кажется?')
+        if len(value) < 9:
+            raise serializers.ValidationError(
+                'Слишком короткий номер! Не кажется?')
         phone = f'+375{value}'
         if User.objects.filter(phone=phone).exists():
             raise serializers.ValidationError(
@@ -94,3 +98,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
         wallet = Wallet.objects.create(user=user)
         wallet.save()
         return user
+
+
+class UserInfoForMoneyTransfer(serializers.ModelSerializer):
+
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'name',
+            'email',
+        )
+
+    def get_name(self, obj):
+        return f'{obj.first_name} {obj.last_name}'

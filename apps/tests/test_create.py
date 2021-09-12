@@ -18,5 +18,3 @@ class RegistrationTest(APITestCase):
         }
         response = self.client.post("/users/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    

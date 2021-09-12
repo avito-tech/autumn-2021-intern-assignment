@@ -4,7 +4,7 @@ import random
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from ..users.models import User
+from apps.users.models import User
 
 
 class Wallet(models.Model):
@@ -160,3 +160,27 @@ class ShopService(models.Model):
 
     def __str__(self):
         return f"{self.user} купил услугу {self.service.name} за {self.service.price}"
+
+
+class MoneyTransfer(models.Model):
+
+    user_transfer = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        verbose_name=_('Пользователь, который перевел'),
+        related_name='money_transfer'
+    )
+    user_received = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        verbose_name=_('Пользователь, который получил'),
+        related_name='money_recived'
+    )
+    amount = models.DecimalField(_('Сумма'), max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Перевод денежных средств'
+        verbose_name_plural = 'Переводы денежных средств'
+
+    def __str__(self) -> str:
+        return (
+            f"{self.user_transfer} -> {self.user_received} ({self.amount})"
+        )

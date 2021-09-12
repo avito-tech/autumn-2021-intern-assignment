@@ -4,8 +4,10 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from faker import Faker as FakerBase
 
-from ..bankcontroller.models import MoneyCard, Service, ShopService, Wallet
-from ..users.models import User
+from apps.bankcontroller.models import (MoneyCard, MoneyTransfer, Service,
+                                        ShopService, Wallet)
+from apps.users.models import User
+
 
 faker = FakerBase()
 
@@ -19,6 +21,12 @@ class CreateModels(TestCase):
             first_name='Test',
             last_name='Testovich',
             password="Test1Test"
+        )
+        self.user1 = get_user_model().objects.create_user(
+            email='test1@test1.test1',
+            first_name='Test1',
+            last_name='Testovich1',
+            password="Test1Test1"
         )
         self.service = Service.objects.create(
             name='test',
@@ -77,3 +85,14 @@ class CreateModels(TestCase):
         )
         self.assertEqual(str(shop_service), res)
 
+    def test_return_transfer_money(self):
+        transfer_money = MoneyTransfer.objects.create(
+            user_transfer=self.user,
+            user_received=self.user1,
+            amount=decimal.Decimal(1200.00),
+        )
+        res = (
+            f"{transfer_money.user_transfer} -> "
+            f"{transfer_money.user_received} ({transfer_money.amount})"
+        )
+        self.assertEqual(str(transfer_money), res)
