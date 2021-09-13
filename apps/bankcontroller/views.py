@@ -1,9 +1,8 @@
 import decimal
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import response, status, viewsets
+from rest_framework import response, status, viewsets, mixins
 from rest_framework.decorators import action
-from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from apps.services.permissions import AdminCreatOrUserRead
@@ -20,7 +19,7 @@ CUREENCY = {
 }
 
 
-class CreateMoneyCardView(CreateAPIView):
+class CreateMoneyCardView(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     queryset = MoneyCard.objects.all()
     serializer_class = CreateMoneyCardSerializer

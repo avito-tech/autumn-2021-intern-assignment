@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import MoneyCard, MoneyTransfer, Service, ShopService, Wallet
+from .models import (MoneyCard, MoneyTransfer, Service, ShopService,
+                     Wallet)
 
 admin.site.register(Wallet)
 admin.site.register(MoneyCard)

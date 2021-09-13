@@ -18,6 +18,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt',
     'djoser',
     'django_filters',
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
@@ -36,6 +37,7 @@ DATABASES = {
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DATETIME_FORMAT': "%d.%m.%Y - %H:%M:%S",
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',

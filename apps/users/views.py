@@ -10,7 +10,7 @@ from apps.bankcontroller.serializers import MoneyTransferSerializer
 from apps.services.pagination import LimitPageNumberPagination
 
 from .models import User
-
+from .serializers import InfoSerializer
 
 class UserViewSet(BaseUserViewSet):
 
@@ -18,7 +18,7 @@ class UserViewSet(BaseUserViewSet):
     pagination_class = LimitPageNumberPagination
 
     def get_serializer_class(self):
-        if self.action == 'money_tranlate':
+        if self.action == 'money_trafic':
             return MoneyTransferSerializer
         return super().get_serializer_class()
 
@@ -32,7 +32,7 @@ class UserViewSet(BaseUserViewSet):
         methods=['POST'],
         permission_classes=[IsAuthenticated]
     )
-    def money_tranlate(self, request, id=None):
+    def money_trafic(self, request, id=None):
         try:
             user_transfer, user_received = self._get_user_or_service(request)
             wallet_user_transfer = Wallet.objects.get(user=user_transfer)
@@ -48,11 +48,12 @@ class UserViewSet(BaseUserViewSet):
             wallet_user_transfer.save()
             wallet_user_received.balance += amount
             wallet_user_received.save()
-            MoneyTransfer.objects.create(
+            money_tranfer = MoneyTransfer.objects.create(
                 user_transfer=user_transfer,
                 user_received=user_received,
                 amount=amount
             )
+            money_tranfer.save()
             return response.Response(
                 {
                     'detail': (
@@ -63,3 +64,7 @@ class UserViewSet(BaseUserViewSet):
             )
         except decimal.InvalidOperation:
             return response.Response({'error': 'Проверьте что Вы ввели'})
+
+    @action(detail=False, permission_classes=[IsAuthenticated])
+    def info_list(self, request):
+        return response.Response(InfoSerializer(request.user).data)

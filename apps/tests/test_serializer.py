@@ -1,16 +1,15 @@
 import decimal
 
-from faker import Faker as FakerBase
-from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APITestCase
-
 from apps.bankcontroller.models import Service, ShopService, Wallet
 from apps.bankcontroller.serializers import (CreateMoneyCardSerializer,
                                              ServiceSerializer)
 from apps.users.models import User
 from apps.users.serializers import (CurrentUserSerializer,
                                     UserCreateSerializer, UserListSerializer)
+from faker import Faker as FakerBase
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APITestCase
 
 faker = FakerBase()
 
@@ -208,7 +207,6 @@ class TestApiSerializer(APITestCase):
         assert serializer.errors['phone'][0] == message_error[-2]
 
     def test_shop_service(self):
-        serializer = CurrentUserSerializer(self.admin)
         self.client.force_authenticate(user=None)
         request = self.client.get('/services/1/shop/')
         self.assertEqual(request.status_code, status.HTTP_401_UNAUTHORIZED)

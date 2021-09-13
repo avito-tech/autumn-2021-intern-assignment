@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import MoneyCard, Service, ShopService, Wallet
+from .models import MoneyCard, MoneyTransfer, Service, ShopService, Wallet
 
 
 class CreateMoneyCardSerializer(serializers.ModelSerializer):
@@ -70,6 +70,19 @@ class ServiceInShopServiceSerializer(serializers.ModelSerializer):
 
     def get_price(self, obj):
         return f"{obj.price} {obj.currency}"
+
+
+class MoneyTransferForUserSerializer(serializers.ModelSerializer):
+
+    user_received = serializers.CharField()
+
+    class Meta:
+        model = MoneyTransfer
+        fields = (
+            'user_received',
+            'amount',
+            'date'
+        )
 
 
 class ShopServiceSerializer(serializers.ModelSerializer):

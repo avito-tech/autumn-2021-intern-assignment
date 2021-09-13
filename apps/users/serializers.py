@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from apps.bankcontroller.models import Wallet
-from apps.bankcontroller.serializers import ShopServiceSerializer
+from apps.bankcontroller.serializers import (MoneyTransferForUserSerializer,
+                                             ShopServiceSerializer)
 
 from .models import User
 
@@ -9,7 +10,6 @@ from .models import User
 class CurrentUserSerializer(serializers.ModelSerializer):
 
     balance = serializers.SerializerMethodField('get_balance')
-    services = serializers.SerializerMethodField('shop_services')
 
     class Meta:
         model = User
@@ -20,16 +20,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'last_name',
             'phone',
             'balance',
-            'services'
         )
 
     def get_balance(self, obj):
         wallet = Wallet.objects.get(user=obj)
         return f'{wallet.balance} BYN'
-
-    def shop_services(self, obj):
-        shops_services = obj.shops.all()
-        return ShopServiceSerializer(shops_services, many=True).data
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -100,16 +95,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserInfoForMoneyTransfer(serializers.ModelSerializer):
-
-    name = serializers.SerializerMethodField()
+class InfoSerializer(serializers.ModelSerializer):
+    services = serializers.SerializerMethodField('shop_services')
+    transfer = serializers.SerializerMethodField('money_transfer')
 
     class Meta:
         model = User
         fields = (
-            'name',
-            'email',
+            'services',
+            'transfer'
         )
 
-    def get_name(self, obj):
-        return f'{obj.first_name} {obj.last_name}'
+    def shop_services(self, obj):
+        shops_services = obj.shops.all()
+        return ShopServiceSerializer(shops_services, many=True).data
+
+    def money_transfer(self, obj):
+        transfer = obj.money_transfer.all()
+        return MoneyTransferForUserSerializer(transfer, many=True).data

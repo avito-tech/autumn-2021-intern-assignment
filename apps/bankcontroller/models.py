@@ -38,7 +38,8 @@ class MoneyCard(models.Model):
     '''Денежная карточка'''
 
     YEARS = [
-        (year, year) for year in range(dt.datetime.now().year, dt.datetime.now().year + 5)
+        (year, year)
+        for year in range(dt.datetime.now().year, dt.datetime.now().year + 5)
     ]
 
     MONTH = (
@@ -113,33 +114,6 @@ class Service(models.Model):
         return f'{self.name}'
 
 
-# class Refill(models.Model):
-
-#     user = models.ForeignKey(
-#         User, on_delete=models.CASCADE,
-#         related_name='replenishment', verbose_name=_('Пользователь')
-#     )
-#     card = models.ForeignKey(
-#         MoneyCard, on_delete=models.CASCADE,
-#         related_name='replenishment',
-#         verbose_name=_('Карточка')
-#     )
-#     wallet = models.ForeignKey(
-#         Wallet, on_delete=models.CASCADE,
-#         related_name='replenishment',
-#         verbose_name=_('Кошелек')
-#     )
-#     amount = models.DecimalField(_('Сумма'), max_digits=10, decimal_places=2)
-
-#     class Meta:
-#         verbose_name = 'Пополнение кошелька'
-#         verbose_name_plural = 'Пополненеие кошельков'
-#         ordering = ['-id']
-
-#     def __str__(self):
-#         return f'{self.user} -> {self.amount}'
-
-
 class ShopService(models.Model):
     '''Покупка услуги'''
 
@@ -159,7 +133,10 @@ class ShopService(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"{self.user} купил услугу {self.service.name} за {self.service.price}"
+        return (
+            f"{self.user} купил услугу {self.service.name} "
+            f"за {self.service.price}"
+        )
 
 
 class MoneyTransfer(models.Model):
@@ -175,6 +152,7 @@ class MoneyTransfer(models.Model):
         related_name='money_recived'
     )
     amount = models.DecimalField(_('Сумма'), max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Перевод денежных средств'
