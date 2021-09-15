@@ -1,0 +1,37 @@
+version: "3.7"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start
+    volumes: 
+      - .:/app
+    ports:
+      - 8000:8000
+    env_file: 
+      - .env
+    depends_on: 
+      - postgres-db
+    networks: 
+      - api-service
+  postgres-db:
+    image: postgres:13.4
+    ports: 
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment: 
+      - DB_NAME=${DB_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks: 
+      - api-service
+
+networks: 
+  api-service:
+    driver: bridge
+
+volumes:
+  postgres_data: 

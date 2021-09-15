@@ -1,5 +1,6 @@
 import decimal
 
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import response, status
 from rest_framework.decorators import action
@@ -11,6 +12,7 @@ from apps.services.pagination import LimitPageNumberPagination
 
 from .models import User
 from .serializers import InfoSerializer
+
 
 class UserViewSet(BaseUserViewSet):
 
@@ -65,6 +67,7 @@ class UserViewSet(BaseUserViewSet):
         except decimal.InvalidOperation:
             return response.Response({'error': 'Проверьте что Вы ввели'})
 
+    # pagination & filter create
     @action(detail=False, permission_classes=[IsAuthenticated])
     def info_list(self, request):
         return response.Response(InfoSerializer(request.user).data)

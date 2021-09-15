@@ -5,11 +5,12 @@ from rest_framework import response, status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
+from apps.services.pagination import LimitPageNumberPagination
 from apps.services.permissions import AdminCreatOrUserRead
 
-from .filters import ServiceFilter
-from .models import MoneyCard, Service, ShopService, Wallet
-from .serializers import CreateMoneyCardSerializer, ServiceSerializer
+from .filters import ServiceFilter, UserInfoServiceLsitFilter, UserInfoMoneyTransferFilter
+from .models import MoneyCard, MoneyTransfer, Service, ShopService, Wallet
+from .serializers import CreateMoneyCardSerializer, ServiceSerializer, ShopServiceSerializer, MoneyTransferForUserSerializer
 
 CUREENCY = {
     "USD": 0.39,
@@ -73,3 +74,27 @@ class ServiceView(viewsets.ModelViewSet):
             {'detail': f'Вы успешно купили услугу {service.name}'},
             status=status.HTTP_200_OK
         )
+
+
+class InfoListShopService(mixins.ListModelMixin, viewsets.GenericViewSet):
+
+    serializer_class = ShopServiceSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = UserInfoServiceLsitFilter
+    pagination_class = LimitPageNumberPagination
+
+    def get_queryset(self):
+        return ShopService.objects.filter(user=self.request.user)
+
+
+class InfoListMoneyTransfer(mixins.ListModelMixin, viewsets.GenericViewSet):
+
+    serializer_class = MoneyTransferForUserSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = UserInfoMoneyTransferFilter
+    pagination_class = LimitPageNumberPagination
+
+    def get_queryset(self):
+        return MoneyTransfer.objects.filter(user_transfer=self.request.user)
