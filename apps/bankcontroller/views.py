@@ -1,16 +1,19 @@
 import decimal
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import response, status, viewsets, mixins
+from rest_framework import mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from apps.services.pagination import LimitPageNumberPagination
 from apps.services.permissions import AdminCreatOrUserRead
 
-from .filters import ServiceFilter, UserInfoServiceLsitFilter, UserInfoMoneyTransferFilter
+from .filters import (ServiceFilter, UserInfoMoneyTransferFilter,
+                      UserInfoServiceLsitFilter)
 from .models import MoneyCard, MoneyTransfer, Service, ShopService, Wallet
-from .serializers import CreateMoneyCardSerializer, ServiceSerializer, ShopServiceSerializer, MoneyTransferForUserSerializer
+from .serializers import (CreateMoneyCardSerializer,
+                          MoneyTransferForUserSerializer, ServiceSerializer,
+                          ShopServiceSerializer)
 
 CUREENCY = {
     "USD": 0.39,

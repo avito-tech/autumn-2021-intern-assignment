@@ -1,4 +1,6 @@
-from apps.bankcontroller.views import CreateMoneyCardView, ServiceView, InfoListShopService, InfoListMoneyTransfer
+from apps.bankcontroller.views import (CreateMoneyCardView,
+                                       InfoListMoneyTransfer,
+                                       InfoListShopService, ServiceView)
 from apps.users.views import UserViewSet
 from rest_framework.routers import DefaultRouter
 

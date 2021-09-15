@@ -3,8 +3,14 @@ import random
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
+from django.core.exceptions import ValidationError
+from django.core.validators import DecimalValidator
 from apps.users.models import User
+
+
+def price_less_than_one(price):
+    if price < 1:
+        raise ValidationError('Услуга не может быть бесплатной')
 
 
 class Wallet(models.Model):
@@ -38,7 +44,7 @@ class MoneyCard(models.Model):
     '''Денежная карточка'''
 
     YEARS = [
-        (year, year)
+        (str(year), str(year),)
         for year in range(dt.datetime.now().year, dt.datetime.now().year + 5)
     ]
 
@@ -101,7 +107,11 @@ class Service(models.Model):
     name = models.CharField(_("Название услуги"), max_length=55)
     description = models.TextField(_('Описание'))
     price = models.DecimalField(
-        _('Цена услуги'), max_digits=10, decimal_places=2)
+        _('Цена услуги'), max_digits=10, decimal_places=2,
+        validators=[
+            DecimalValidator(max_digits=10, decimal_places=2),
+            price_less_than_one
+        ])
     currency = models.CharField(
         _('Валюта'), choices=CUREENCY, default='BYN', max_length=6)
 
@@ -112,6 +122,11 @@ class Service(models.Model):
 
     def __str__(self):
         return f'{self.name}'
+
+    def validate_price(self, price):
+        if price < 1:
+            raise ValidationError('Услуга не может юыть бесплатной')
+        return price
 
 
 class ShopService(models.Model):

@@ -1,6 +1,5 @@
 import decimal
 
-from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import response, status
 from rest_framework.decorators import action
