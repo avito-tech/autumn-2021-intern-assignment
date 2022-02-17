@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
-from rest_framework import status, views
+from rest_framework import filters, generics, status, views
 from rest_framework.response import Response
 
 from balance.models import Balance, Transaction, Transfer
@@ -127,17 +127,12 @@ class TransferView(UserBalance):
         )
         
 
-class TransactionHistory(views.APIView):
-    
-    def get(self, request, pk):
-        try:
-            user = User.objects.get(pk=pk)
-        except:
-            return Response(ErrorResponse.USER_DOES_NOT_EXIST,
-                                status=status.HTTP_404_NOT_FOUND)
-        transactions = user.transactions.all()
-        if len(transactions) == 0:
-            return Response(ErrorResponse.NO_TRANSACTIONS,
-                                status=status.HTTP_204_NO_CONTENT)
-        serializer = TransactionSerializer(transactions, many=True)        
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class TransactionHistory(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = ('sum', 'created')
+
+    def get_queryset(self):
+        user_id = self.kwargs.get('pk')
+        user = get_object_or_404(User, id=user_id)
+        return user.transactions.all()

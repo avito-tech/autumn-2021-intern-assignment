@@ -12,7 +12,19 @@ OPERATIONS = [
 ]
 
 
-class Balance(models.Model):
+class CreatedModel(models.Model):
+    created = models.DateTimeField(
+        'Дата создания',
+        auto_now_add=True,
+        db_index=True,
+    )
+
+    class Meta:
+        abstract = True
+        ordering = ('-created',)
+
+
+class Balance(CreatedModel):
     
     amount = models.DecimalField(
         'Баланс пользователя',
@@ -26,13 +38,9 @@ class Balance(models.Model):
         verbose_name='Пользователь',
         related_name='balance'
     )
-    created = models.DateTimeField(
-        'Дата создания',
-        auto_now_add=True
-    )
 
 
-class Transaction(models.Model):
+class Transaction(CreatedModel):
         
     user = models.ForeignKey(
         User,
@@ -46,10 +54,6 @@ class Transaction(models.Model):
         choices=OPERATIONS
     )
     details = models.CharField('Детали операции', max_length=255)
-    created = models.DateTimeField(
-        'Дата совершения операции',
-        auto_now_add=True
-    )
     sum = models.DecimalField(
         'Сумма',
         decimal_places=2,
@@ -60,7 +64,7 @@ class Transaction(models.Model):
     )
 
 
-class Transfer(models.Model):
+class Transfer(CreatedModel):
     outcoming = models.ForeignKey(
         Transaction,
         on_delete=models.CASCADE,
