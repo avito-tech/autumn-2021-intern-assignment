@@ -6,7 +6,9 @@ from rest_framework import filters, generics, status, views
 from rest_framework.response import Response
 
 from balance.models import Balance, Transaction, Transfer
-from balance.errors import BalanceDoesNotExist, UserDoesNotExist, ErrorResponse
+from balance.errors import (BalanceDoesNotExist, UserDoesNotExist, CurrencyNotFound,
+                            ErrorResponse)
+from balance.scripts import convert
 from balance.serializers import (ShowBalanceSerializer, ChangeBalanceSerializer,
                                 TransferSerializer, TransactionSerializer)
 
@@ -16,7 +18,7 @@ User = get_user_model()
 
 class UserBalance(views.APIView):
 
-    def _get_balance_to_reduce(self, user_id):
+    def _get_balance(self, user_id):
         try:
             user = User.objects.get(pk=user_id)
         except Exception as e:
@@ -25,22 +27,28 @@ class UserBalance(views.APIView):
             balance = Balance.objects.get(owner=user_id)
         except Exception as e:
             raise BalanceDoesNotExist
-        return balance
+        return user, balance
 
-    def _get_balance_to_increase(self, user_id):
+    def _get_or_create_balance(self, user_id):
         try:
             user = User.objects.get(pk=user_id)
         except Exception as e:
             raise UserDoesNotExist
         balance, status = Balance.objects.get_or_create(owner_id=user_id)
-        return balance
+        return user, balance
 
 
-class ShowBalance(views.APIView):
+class ShowBalance(UserBalance):
 
     def get(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
-        balance = get_object_or_404(Balance, owner=user.id)
+        user, balance = self._get_balance(pk)
+        currency = self.request.query_params.get('currency')
+        if currency:
+            try:
+                balance.amount = convert(currency, balance.amount)
+            except CurrencyNotFound:
+                return Response(ErrorResponse.INCORRECT_CURRENCY,
+                                status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         serializer = ShowBalanceSerializer(balance)        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -51,7 +59,7 @@ class RefillBalance(UserBalance):
         serializer = ChangeBalanceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-             balance = self._get_balance_to_increase(pk)
+            user, balance = self._get_or_create_balance(pk)
         except UserDoesNotExist:
             return Response(ErrorResponse.USER_DOES_NOT_EXIST,
                                 status=status.HTTP_404_NOT_FOUND)
@@ -68,7 +76,7 @@ class WithdrawBalance(UserBalance):
 
     def post(self, request, pk):
         try:
-            balance = self._get_balance_to_reduce(pk)
+            user, balance = self._get_balance(pk)
         except UserDoesNotExist:
             return Response(ErrorResponse.USER_DOES_NOT_EXIST,
                                 status=status.HTTP_404_NOT_FOUND)
@@ -96,12 +104,12 @@ class TransferView(UserBalance):
         serializer.is_valid(raise_exception=True)
         sender_id = serializer.validated_data['sender_id']
         try:
-            sender_balance = self._get_balance_to_reduce(sender_id)
+            sender, sender_balance = self._get_balance(sender_id)
         except UserDoesNotExist:
             return Response(ErrorResponse.USER_DOES_NOT_EXIST,
                                 status=status.HTTP_404_NOT_FOUND)
         except BalanceDoesNotExist:
-            return Response(ErrorResponse.NO_BANK_ACCOUNT, #лишнее
+            return Response(ErrorResponse.NO_BANK_ACCOUNT,
                         status=status.HTTP_404_NOT_FOUND)
         sum = serializer.validated_data['sum']
         if sender_balance.amount < sum:
@@ -109,7 +117,7 @@ class TransferView(UserBalance):
                                 status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         receiver_id = serializer.validated_data['receiver_id']
         try:
-            receiver_balance = self._get_balance_to_increase(receiver_id)
+            receiver, receiver_balance = self._get_or_create_balance(receiver_id)
         except UserDoesNotExist:
             return Response(ErrorResponse.USER_DOES_NOT_EXIST,
                                 status=status.HTTP_404_NOT_FOUND)
@@ -120,8 +128,8 @@ class TransferView(UserBalance):
             receiver_balance.save()
             serializer.save()
         return Response(data={
-            'sender_id': sender_id,
-            'receiver_id': receiver_id,
+            'sender_id': sender.id,
+            'receiver_id': receiver.id,
             'balance': sender_balance.amount},
             status=status.HTTP_200_OK
         )
